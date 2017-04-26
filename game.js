@@ -1,4 +1,7 @@
 var bg;
+var car;
+var controllers;
+
 var Game = {
     
     preload: function(){
@@ -12,11 +15,15 @@ var Game = {
     
     create: function(){
         bg = game.add.tileSprite(0, 0, 290, 540, 'background');
-        
+        car = game.add.sprite(game.width/2, 490, 'car');
+        car.anchor.setTo(0.5);
+        controllers = game.input.keyboard.createCursorKeys();
     },
     
     update: function(){
-        
+        bg.tilePosition.y += 3;
+        if(controllers.right.isDown && car.position.x < 245){ car.position.x += 5; }
+        else if(controllers.left.isDown && car.position.x > 45){ car.position.x -= 5; }
     }
     
 };
