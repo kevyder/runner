@@ -19,12 +19,16 @@ var Game = {
     
     create: function(){
         bg = game.add.tileSprite(0, 0, 290, 540, 'background');
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+        game.physics.arcade.enable(car);
         car = game.add.sprite(game.width/2, 490, 'car');
         car.anchor.setTo(0.5);
+        car.enableBody = true;
         
         anticar = game.add.group();
-        game.physics.arcade.enable(anticar);
+        game.physics.arcade.enable(anticar, true);
         anticar.enableBody = true;
+        anticar.setBodyType = Phaser.Physics.ARCADE;
         anticar.createMultiple(20, 'greenCar');
         anticar.setAll('anchor.x', 0.5);
         anticar.setAll('anchor.y', 0.5);
@@ -32,7 +36,8 @@ var Game = {
         anticar.setAll('outOfBoundsKill', true);
         
         gases = game.add.group();
-        game.physics.arcade.enable(gases);
+        game.physics.arcade.enable(gases, true);
+        gases.setBodyType = Phaser.Physics.ARCADE;
         gases.enableBody = true;
         gases.createMultiple(20, 'gas');
         gases.setAll('anchor.x', 0.5);
@@ -47,14 +52,16 @@ var Game = {
     
     update: function(){
         bg.tilePosition.y += 3;
+        game.physics.arcade.overlap(this.car, this.anticar, this.clash, null, this);
+        game.physics.arcade.overlap(this.car, this.gases, this.rechange, null, this);
         if(controllers.right.isDown && car.position.x < 245){ car.position.x += 5; }
         else if(controllers.left.isDown && car.position.x > 45){ car.position.x -= 5; }
     },
     
     createGreenCar: function(){
         var pos = Math.floor(Math.random()*3) + 1;
-        var enemy =  anticar.getFirstDead();
-        enemy.physicsBodyType = Phaser.Physics.ARCADE;
+        var enemy = anticar.getFirstDead();
+        game.physics.enable(enemy, Phaser.Physics.ARCADE);
         enemy.reset(pos*73, 0);
         enemy.body.velocity.y = 200;
     },
@@ -62,8 +69,18 @@ var Game = {
     createGas: function(){
         var pos = Math.floor(Math.random()*3) + 1;
         var gas =  gases.getFirstDead();
-        gas.physicsBodyType = Phaser.Physics.ARCADE;
+        game.physics.enable(gas, Phaser.Physics.ARCADE);
         gas.reset(pos*73, 0);
-        gas.body.velocity.y = 200;
+        gas.body.velocity.y = 100;
+    },
+    
+    clash: function(){
+        anticar.forEachAlive(function(e){ e.body.velocity = 0 }, this);
+        game.time.events.remove(timer);
+        game.state.start('gameover');
+    },
+    
+    rechange: function(car, gas){
+        gas.kill();
     }
 };
